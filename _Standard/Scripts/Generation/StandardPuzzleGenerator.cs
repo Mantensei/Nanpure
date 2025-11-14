@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using Nanpure.Standard.Core;
 
@@ -40,15 +40,22 @@ namespace Nanpure.Standard.Generation
             int holesToMake = GetHolesCount(difficulty);
             int[] puzzle = CreatePuzzle(solution, holesToMake);
 
-            return new PuzzleData
+            var puzzleData = new PuzzleData(BoardSize);
+            puzzleData.Seed = seed;
+
+            for (int i = 0; i < TotalCells; i++)
             {
-                Seed = seed,
-                InitialState = puzzle,
-                Solution = solution
-            };
+                int row = i / BoardSize;
+                int col = i % BoardSize;
+                bool isRevealed = puzzle[i] != 0;
+                int answerValue = solution[i];
+                puzzleData.Cells[i] = new CellData(row, col, isRevealed, answerValue);
+            }
+
+            return puzzleData;
         }
 
-        // “ïˆÕ“x‚É‰‚¶‚½ŒŠ‚ ‚¯”‚ğ•Ô‚·
+        // é›£æ˜“åº¦ã«å¿œã˜ãŸç©´ã‚ã‘æ•°ã‚’è¿”ã™
         private int GetHolesCount(Difficulty difficulty)
         {
             return difficulty switch
@@ -61,14 +68,14 @@ namespace Nanpure.Standard.Generation
             };
         }
 
-        // Š®¬‚µ‚½”Õ–Ê‚ğ¶¬i‘ÎŠpƒuƒƒbƒN‚ğ–„‚ß‚Ä‚©‚çƒoƒbƒNƒgƒ‰ƒbƒNj
+        // å®Œæˆã—ãŸç›¤é¢ã‚’ç”Ÿæˆï¼ˆå¯¾è§’ãƒ–ãƒ­ãƒƒã‚¯ã‚’åŸ‹ã‚ã¦ã‹ã‚‰ãƒãƒƒã‚¯ãƒˆãƒ©ãƒƒã‚¯ï¼‰
         private void GenerateCompletedBoard()
         {
             FillDiagonalBlocks();
             SolveBoard(0, 0);
         }
 
-        // ‘ÎŠpüã‚ÌƒuƒƒbƒNiŠ±Â‚µ‚È‚¢j‚ğƒ‰ƒ“ƒ_ƒ€‚É–„‚ß‚é
+        // å¯¾è§’ç·šä¸Šã®ãƒ–ãƒ­ãƒƒã‚¯ï¼ˆå¹²æ¸‰ã—ãªã„ï¼‰ã‚’ãƒ©ãƒ³ãƒ€ãƒ ã«åŸ‹ã‚ã‚‹
         private void FillDiagonalBlocks()
         {
             int blockCount = BoardSize / BlockSize;
@@ -78,7 +85,7 @@ namespace Nanpure.Standard.Generation
             }
         }
 
-        // w’èˆÊ’u‚ÌƒuƒƒbƒN‚ğƒ‰ƒ“ƒ_ƒ€‚È”š‚Å–„‚ß‚é
+        // æŒ‡å®šä½ç½®ã®ãƒ–ãƒ­ãƒƒã‚¯ã‚’ãƒ©ãƒ³ãƒ€ãƒ ãªæ•°å­—ã§åŸ‹ã‚ã‚‹
         private void FillBlock(int row, int col)
         {
             List<int> numbers = new List<int>();
@@ -98,7 +105,7 @@ namespace Nanpure.Standard.Generation
             }
         }
 
-        // ƒoƒbƒNƒgƒ‰ƒbƒN–@‚Å”Õ–Ê‚ğŠ®¬‚³‚¹‚é
+        // ãƒãƒƒã‚¯ãƒˆãƒ©ãƒƒã‚¯æ³•ã§ç›¤é¢ã‚’å®Œæˆã•ã›ã‚‹
         private bool SolveBoard(int row, int col)
         {
             if (col == BoardSize)
@@ -132,7 +139,7 @@ namespace Nanpure.Standard.Generation
             return false;
         }
 
-        // w’èˆÊ’u‚É”š‚ğ”z’u‚Å‚«‚é‚©ƒ`ƒFƒbƒNisE—ñEƒuƒƒbƒN‚Ìd•¡Šm”Fj
+        // æŒ‡å®šä½ç½®ã«æ•°å­—ã‚’é…ç½®ã§ãã‚‹ã‹ãƒã‚§ãƒƒã‚¯ï¼ˆè¡Œãƒ»åˆ—ãƒ»ãƒ–ãƒ­ãƒƒã‚¯ã®é‡è¤‡ç¢ºèªï¼‰
         private bool IsValidPlacement(int row, int col, int num)
         {
             for (int i = 0; i < BoardSize; i++)
@@ -155,7 +162,7 @@ namespace Nanpure.Standard.Generation
             return true;
         }
 
-        // Š®¬”Õ–Ê‚©‚çŒŠ‚ğŠJ‚¯‚ÄƒpƒYƒ‹‚ğì¬i—Bˆê‰ğ‚ğ•ÛØj
+        // å®Œæˆç›¤é¢ã‹ã‚‰ç©´ã‚’é–‹ã‘ã¦ãƒ‘ã‚ºãƒ«ã‚’ä½œæˆï¼ˆå”¯ä¸€è§£ã‚’ä¿è¨¼ï¼‰
         private int[] CreatePuzzle(int[] solution, int holesToMake)
         {
             int[] puzzle = new int[TotalCells];
@@ -186,7 +193,7 @@ namespace Nanpure.Standard.Generation
             return puzzle;
         }
 
-        // ƒpƒYƒ‹‚ª—Bˆê‰ğ‚ğ‚Â‚©ƒ`ƒFƒbƒNi‰ğ‚ª2‚ÂˆÈãŒ©‚Â‚©‚Á‚½‚ç‘Å‚¿Ø‚èj
+        // ãƒ‘ã‚ºãƒ«ãŒå”¯ä¸€è§£ã‚’æŒã¤ã‹ãƒã‚§ãƒƒã‚¯ï¼ˆè§£ãŒ2ã¤ä»¥ä¸Šè¦‹ã¤ã‹ã£ãŸã‚‰æ‰“ã¡åˆ‡ã‚Šï¼‰
         private bool HasUniqueSolution(int[] puzzle)
         {
             int[,] testBoard = ArrayToBoard(puzzle);
@@ -195,7 +202,7 @@ namespace Nanpure.Standard.Generation
             return solutionCount == 1;
         }
 
-        // Ä‹A“I‚É‰ğ‚Ì”‚ğ”‚¦‚éi2‚ÂŒ©‚Â‚©‚Á‚½“_‚Å‘Å‚¿Ø‚èj
+        // å†å¸°çš„ã«è§£ã®æ•°ã‚’æ•°ãˆã‚‹ï¼ˆ2ã¤è¦‹ã¤ã‹ã£ãŸæ™‚ç‚¹ã§æ‰“ã¡åˆ‡ã‚Šï¼‰
         private void CountSolutions(int[,] board, int row, int col, ref int count)
         {
             if (count > 1) return;
@@ -228,7 +235,7 @@ namespace Nanpure.Standard.Generation
             }
         }
 
-        // w’è”Õ–Ê‚Å‚Ì”z’uƒ`ƒFƒbƒNiCountSolutions—pj
+        // æŒ‡å®šç›¤é¢ã§ã®é…ç½®ãƒã‚§ãƒƒã‚¯ï¼ˆCountSolutionsç”¨ï¼‰
         private bool IsValidPlacementOnBoard(int[,] board, int row, int col, int num)
         {
             for (int i = 0; i < BoardSize; i++)
@@ -251,7 +258,7 @@ namespace Nanpure.Standard.Generation
             return true;
         }
 
-        // 2ŸŒ³”z—ñ‚ğ1ŸŒ³”z—ñ‚É•ÏŠ·
+        // 2æ¬¡å…ƒé…åˆ—ã‚’1æ¬¡å…ƒé…åˆ—ã«å¤‰æ›
         private int[] BoardToArray()
         {
             int[] array = new int[TotalCells];
@@ -265,7 +272,7 @@ namespace Nanpure.Standard.Generation
             return array;
         }
 
-        // 1ŸŒ³”z—ñ‚ğ2ŸŒ³”z—ñ‚É•ÏŠ·
+        // 1æ¬¡å…ƒé…åˆ—ã‚’2æ¬¡å…ƒé…åˆ—ã«å¤‰æ›
         private int[,] ArrayToBoard(int[] array)
         {
             int[,] board = new int[BoardSize, BoardSize];
@@ -276,7 +283,7 @@ namespace Nanpure.Standard.Generation
             return board;
         }
 
-        // ƒŠƒXƒg‚ğƒVƒƒƒbƒtƒ‹
+        // ãƒªã‚¹ãƒˆã‚’ã‚·ãƒ£ãƒƒãƒ•ãƒ«
         private void Shuffle<T>(List<T> list)
         {
             for (int i = list.Count - 1; i > 0; i--)

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace Nanpure.Standard.Core
 {
@@ -10,56 +10,33 @@ namespace Nanpure.Standard.Core
         Expert
     }
 
-    [Serializable]
-    public struct CellPosition
+    public class CellData
     {
         public int Row;
         public int Column;
+        public bool IsRevealed;
+        public int Value;
 
-        public CellPosition(int row, int column)
+        public CellData(int row, int column, bool isRevealed, int answerValue)
         {
             Row = row;
             Column = column;
+            IsRevealed = isRevealed;
+            Value = answerValue;
         }
-
-        public int ToIndex() => Row * 9 + Column;
-
-        public static CellPosition FromIndex(int index)
-        {
-            return new CellPosition(index / 9, index % 9);
-        }
-
-        public int BlockIndex => (Row / 3) * 3 + (Column / 3);
-
-        public override string ToString() => $"R{Row}C{Column}";
     }
 
     [Serializable]
     public class PuzzleData
     {
+        public int BoardSize;
         public int Seed;
-        public int[] InitialState;
-        public int[] Solution;
+        public CellData[] Cells;
 
-        public PuzzleData()
+        public PuzzleData(int boardSize)
         {
-            InitialState = new int[81];
-            Solution = new int[81];
-        }
-
-        public int GetInitialValue(int row, int column)
-        {
-            return InitialState[row * 9 + column];
-        }
-
-        public int GetSolution(int row, int column)
-        {
-            return Solution[row * 9 + column];
-        }
-
-        public bool IsFixed(int row, int column)
-        {
-            return InitialState[row * 9 + column] != 0;
+            BoardSize = boardSize;
+            Cells = new CellData[boardSize * boardSize];
         }
     }
 }
