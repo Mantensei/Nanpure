@@ -1,10 +1,14 @@
+﻿using MantenseiLib;
 using UnityEngine;
 
-namespace Nanpure.Standard.Cell
+namespace Nanpure.Standard.Module
 {
     /// <summary>セルの固定データ（パズル生成時に確定）</summary>
     public class CellMeta : MonoBehaviour
     {
+        [Parent]
+        public Cell Cell { get; private set; }
+
         public int AnswerValue { get; private set; }
         public int Row { get; private set; }
         public int Column { get; private set; }

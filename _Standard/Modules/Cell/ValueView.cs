@@ -2,13 +2,14 @@
 using TMPro;
 using MantenseiLib;
 
-namespace Nanpure.Standard.Cell
+namespace Nanpure.Standard.Module
 {
     public class ValueView : MonoBehaviour
     {
-        [GetComponent(HierarchyRelation.Children)] private TextMeshProUGUI _text;
-        [Parent] private Cell _cell;
-        [Sibling] private CellState _state;
+        [GetComponent(HierarchyRelation.Self | HierarchyRelation.Children)] 
+        private TextMeshProUGUI _text;
+        [Parent] public Cell Cell { get; private set; }
+        private CellState _state => Cell.State;
 
         private void Start()
         {

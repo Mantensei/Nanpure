@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using MantenseiLib;
 
-namespace Nanpure.Standard.Cell
+namespace Nanpure.Standard.Module
 {
     /// <summary>セルの動的データ（プレイ中に変化）</summary>
     public class CellState : MonoBehaviour
     {
         [Parent] private Cell _cell;
-        [Sibling] private CellMeta _meta;
+        private CellMeta _meta => _cell.Meta;
 
         public int InputValue { get; private set; }
         private HashSet<int> _memos = new HashSet<int>();

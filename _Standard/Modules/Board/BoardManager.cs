@@ -1,22 +1,22 @@
-using UnityEngine;
+﻿using UnityEngine;
 using Nanpure.Standard.Core;
 
-namespace Nanpure.Standard.Board
+namespace Nanpure.Standard.Module
 {
     /// <summary>盤面全体を管理</summary>
     public class BoardManager : MonoBehaviour
     {
-        [SerializeField] private Cell.Cell _cellPrefab;
+        [SerializeField] private Cell _cellPrefab;
         [SerializeField] private Transform _cellContainer;
 
         public int BoardSize { get; private set; }
-        private Cell.Cell[,] _cells;
+        private Cell[,] _cells;
 
         /// <summary>盤面を初期化</summary>
         public void Initialize(int boardSize)
         {
             BoardSize = boardSize;
-            _cells = new Cell.Cell[boardSize, boardSize];
+            _cells = new Cell[boardSize, boardSize];
 
             CreateCells();
         }
@@ -41,7 +41,7 @@ namespace Nanpure.Standard.Board
         }
 
         /// <summary>指定位置のセルを取得</summary>
-        public Cell.Cell GetCell(int row, int column)
+        public Cell GetCell(int row, int column)
         {
             if (row < 0 || row >= BoardSize || column < 0 || column >= BoardSize)
                 return null;
@@ -50,7 +50,7 @@ namespace Nanpure.Standard.Board
         }
 
         /// <summary>全セルを取得</summary>
-        public Cell.Cell[,] GetAllCells()
+        public Cell[,] GetAllCells()
         {
             return _cells;
         }
@@ -74,9 +74,9 @@ namespace Nanpure.Standard.Board
             }
         }
 
-        private void InitializeCell(Cell.Cell cell, CellData cellData)
+        private void InitializeCell(Cell cell, CellData cellData)
         {
-            var meta = cell.GetComponentInChildren<Cell.CellMeta>();
+            var meta = cell.GetComponentInChildren<Module.CellMeta>();
             if (meta != null)
             {
                 int initialValue = cellData.IsRevealed ? cellData.Value : 0;
@@ -84,26 +84,7 @@ namespace Nanpure.Standard.Board
                 
                 if (initialValue > 0)
                 {
-                    cell.SetValue(initialValue);
-                }
-            }
-        }
-
-        /// <summary>盤面をクリア</summary>
-        public void Clear()
-        {
-            if (_cells == null) return;
-
-            for (int row = 0; row < BoardSize; row++)
-            {
-                for (int col = 0; col < BoardSize; col++)
-                {
-                    var cell = _cells[row, col];
-                    if (cell != null && !cell.IsFixed)
-                    {
-                        cell.ClearValue();
-                        cell.ClearAllMemos();
-                    }
+                    cell.State.SetValue(initialValue);
                 }
             }
         }

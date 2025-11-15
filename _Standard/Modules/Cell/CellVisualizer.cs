@@ -2,7 +2,7 @@
 using UnityEngine.UI;
 using MantenseiLib;
 
-namespace Nanpure.Standard.Cell
+namespace Nanpure.Standard.Module
 {
     /// <summary>セル表示の総合マネージャー（現在は背景色のみ制御）</summary>
     public class CellVisualizer : MonoBehaviour
