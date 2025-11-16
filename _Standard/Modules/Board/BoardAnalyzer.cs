@@ -8,7 +8,8 @@ namespace Nanpure.Standard.Core
 {
     public class BoardAnalyzer : MonoBehaviour
     {
-        [Parent] IBoard board;
+        [Parent] Root root;
+        [Sibling] IBoard board;
         Board Board => board.Board;
 
     }

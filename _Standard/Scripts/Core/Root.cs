@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace NumberPlace
+namespace Nanpure
 {
     public class Root : MonoBehaviour
     {
