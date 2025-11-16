@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Nanpure.Standard.Core;
 
-namespace Nanpure.Standard.Generation
+namespace Nanpure.Standard
 {
     public interface IPuzzleGenerator
     {
@@ -15,6 +15,7 @@ namespace Nanpure.Standard.Generation
         public int BlockSize { get; private set; }
         public int TotalCells { get; private set; }
 
+        public int Seed { get; private set; }
         private System.Random _random;
         private int[,] _board;
 
@@ -27,11 +28,16 @@ namespace Nanpure.Standard.Generation
             BoardSize = boardSize;
             BlockSize = blockSize;
             TotalCells = boardSize * boardSize;
+            _random = new System.Random();
         }
+
+        public PuzzleData Generate(Difficulty difficulty) 
+            => Generate(_random.Next(), difficulty);
 
         public PuzzleData Generate(int seed, Difficulty difficulty)
         {
-            _random = new System.Random(seed);
+            this.Seed = seed;
+            _random = new System.Random(Seed);
             _board = new int[BoardSize, BoardSize];
 
             GenerateCompletedBoard();
@@ -41,7 +47,7 @@ namespace Nanpure.Standard.Generation
             int[] puzzle = CreatePuzzle(solution, holesToMake);
 
             var puzzleData = new PuzzleData(BoardSize);
-            puzzleData.Seed = seed;
+            puzzleData.Seed = Seed;
 
             for (int i = 0; i < TotalCells; i++)
             {

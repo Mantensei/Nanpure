@@ -3,44 +3,27 @@ using Nanpure.Standard.Core;
 
 namespace Nanpure.Standard.Module
 {
-    /// <summary>盤面全体を管理</summary>
     public class BoardManager : MonoBehaviour
     {
         [SerializeField] private Cell _cellPrefab;
         [SerializeField] private Transform _cellContainer;
 
-        public int BoardSize { get; private set; }
+        public int blockSize { get; private set; } = 3;
+        public int BoardSize => blockSize * blockSize;
         private Cell[,] _cells;
+        StandardPuzzleGenerator puzzleGenerator;
 
-        /// <summary>盤面を初期化</summary>
-        public void Initialize(int boardSize)
+        public void Initialize() => Initialize(3);
+        public void Initialize(int blockSize)
         {
-            BoardSize = boardSize;
-            _cells = new Cell[boardSize, boardSize];
+            _cells = new Cell[BoardSize, BoardSize];
+            puzzleGenerator = new StandardPuzzleGenerator(blockSize);
 
             CreateCells();
         }
 
-        /// <summary>パズルデータを盤面に投入</summary>
-        public void LoadPuzzle(PuzzleData puzzleData)
-        {
-            if (puzzleData.BoardSize != BoardSize)
-            {
-                Debug.LogError($"BoardSize mismatch: {BoardSize} vs {puzzleData.BoardSize}");
-                return;
-            }
+        public Cell GetCell(Vector2Int address) => GetCell(address.x, address.y);
 
-            foreach (var cellData in puzzleData.Cells)
-            {
-                var cell = GetCell(cellData.Row, cellData.Column);
-                if (cell != null)
-                {
-                    InitializeCell(cell, cellData);
-                }
-            }
-        }
-
-        /// <summary>指定位置のセルを取得</summary>
         public Cell GetCell(int row, int column)
         {
             if (row < 0 || row >= BoardSize || column < 0 || column >= BoardSize)
@@ -49,7 +32,6 @@ namespace Nanpure.Standard.Module
             return _cells[row, column];
         }
 
-        /// <summary>全セルを取得</summary>
         public Cell[,] GetAllCells()
         {
             return _cells;
@@ -57,36 +39,47 @@ namespace Nanpure.Standard.Module
 
         private void CreateCells()
         {
-            if (_cellPrefab == null)
-            {
-                Debug.LogError("Cell Prefab is not assigned!");
-                return;
-            }
+            var puzzle = puzzleGenerator.Generate(Difficulty.Expert);
+            _cells = new Cell[BoardSize, BoardSize];
 
-            for (int row = 0; row < BoardSize; row++)
+            foreach (var cellData in puzzle.Cells)
             {
-                for (int col = 0; col < BoardSize; col++)
-                {
-                    var cellObj = Instantiate(_cellPrefab, _cellContainer);
-                    cellObj.name = $"Cell_{row}_{col}";
-                    _cells[row, col] = cellObj;
-                }
+                var cell = Instantiate(_cellPrefab);
+                var num = cellData.Value;
+                var row = cellData.Row;
+                var col = cellData.Column;
+
+                cell.Data.Initialize(row, col, num, cellData.IsRevealed);
+                cell.StateManager.Initialize();
+
+                cell.name = $"Cell_{row}_{col}";
+                _cells[row, col] = cell;
+
+                SetCellPosition(cell, row, col);
+
+                cell.transform.SetParent(_cellContainer, false);
             }
         }
 
-        private void InitializeCell(Cell cell, CellData cellData)
+        private void SetCellPosition(Cell cell, int row, int col)
         {
-            var meta = cell.GetComponentInChildren<Module.CellMeta>();
-            if (meta != null)
+            var containerRect = _cellContainer.GetComponent<RectTransform>();
+
+            if (containerRect != null)
             {
-                int initialValue = cellData.IsRevealed ? cellData.Value : 0;
-                meta.Initialize(cellData.Row, cellData.Column, cellData.Value, cellData.IsRevealed);
-                
-                if (initialValue > 0)
-                {
-                    cell.State.SetValue(initialValue);
-                }
+                float width = containerRect.rect.width;
+                float height = containerRect.rect.height;
+
+                float cellSizeX = width / BoardSize;
+                float cellSizeY = height / BoardSize;
+
+                float x = (col + 0.5f) * cellSizeX - width / 2f;
+                float y = height / 2f - (row + 0.5f) * cellSizeY;
+
+                cell.transform.localPosition = new Vector3(x, y, 0f);
+                cell.transform.localScale = new Vector3(cellSizeX, cellSizeY, 1f);
             }
         }
+
     }
 }

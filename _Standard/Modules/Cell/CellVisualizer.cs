@@ -7,11 +7,14 @@ namespace Nanpure.Standard.Module
     /// <summary>セル表示の総合マネージャー（現在は背景色のみ制御）</summary>
     public class CellVisualizer : MonoBehaviour
     {
-        [SerializeField] private Image _background;
+        [GetComponent(HierarchyRelation.Self | HierarchyRelation.Children)] 
+        private Image _background;
+
         [SerializeField] private Color _normalColor = Color.white;
         [SerializeField] private Color _fixedColor = new Color(0.9f, 0.9f, 0.9f);
 
-        [Sibling] private CellMeta _meta;
+        [Parent] public Cell Cell { get; private set; }
+        private CellMeta _meta => Cell.Data;
 
         private void Start()
         {
@@ -22,7 +25,7 @@ namespace Nanpure.Standard.Module
         {
             if (_background == null) return;
 
-            _background.color = _meta.IsFixed ? _fixedColor : _normalColor;
+            _background.color = _meta.IsRevealed ? _fixedColor : _normalColor;
         }
     }
 }

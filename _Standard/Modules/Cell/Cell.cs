@@ -5,10 +5,20 @@ using System;
 
 namespace Nanpure.Standard.Module
 {
-    /// <summary>セル全体を統括（参照ホルダー）</summary>
-    public class Cell : MonoBehaviour
+    public partial class Cell : MonoBehaviour
     {
-        [GetComponent(HierarchyRelation.Children)] public CellMeta Meta { get; private set; }
-        [GetComponent(HierarchyRelation.Children)] public CellState State { get; private set; }
+        [GetComponent(HierarchyRelation.Children)] 
+        public CellMeta Data { get; private set; }
+        [GetComponent(HierarchyRelation.Children)] 
+        public CellStateManager StateManager { get; private set; }
+    }
+
+    public partial class Cell
+    {
+        public int Value => Data.Num;
+        public int Row => Data.Row;
+        public int Column => Data.Column;
+
+        public Vector2Int Address => new Vector2Int(Data.Row, Data.Column);
     }
 }
