@@ -1,6 +1,7 @@
 ﻿using MantenseiLib;
 using UnityEngine;
 using System;
+using Nanpure.Standard.Core;
 
 namespace Nanpure.Standard.Module
 {
@@ -12,14 +13,16 @@ namespace Nanpure.Standard.Module
         public int Num { get; private set; }
         public int Row { get; private set; }
         public int Column { get; private set; }
+        public int Group { get; private set; }
         public bool IsRevealed { get; private set; }
 
-        public void Initialize(int row, int column, int value, bool isRevealed)
+        public void Initialize(CellData cellData)
         {
-            Row = row;
-            Column = column;
-            Num = value;
-            IsRevealed = isRevealed;
+            Num = cellData.Value;
+            Row = cellData.Row;
+            Column = cellData.Column;
+            Group = cellData.Group;
+            IsRevealed = cellData.IsRevealed;
         }
     }
 }

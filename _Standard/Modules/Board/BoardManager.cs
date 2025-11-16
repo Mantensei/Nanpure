@@ -1,46 +1,98 @@
 ﻿using UnityEngine;
 using Nanpure.Standard.Core;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Nanpure.Standard.Module
 {
-    public class BoardManager : MonoBehaviour
+    public interface IBoard
     {
-        [SerializeField] private Cell _cellPrefab;
-        [SerializeField] private Transform _cellContainer;
+        Board Board { get; }
+    }
 
-        public int blockSize { get; private set; } = 3;
-        public int BoardSize => blockSize * blockSize;
-        private Cell[,] _cells;
-        StandardPuzzleGenerator puzzleGenerator;
+    public class Board
+    {
+        public Cell[] Cells { get; private set; }
+        public int BlockSize { get; private set; }
+        public int BoardSize => BlockSize * BlockSize;
 
-        public void Initialize() => Initialize(3);
-        public void Initialize(int blockSize)
+        public Board(int blockSize, Cell[] board)
         {
-            _cells = new Cell[BoardSize, BoardSize];
-            puzzleGenerator = new StandardPuzzleGenerator(blockSize);
-
-            CreateCells();
+            BlockSize = blockSize;
+            Cells = board;
         }
 
         public Cell GetCell(Vector2Int address) => GetCell(address.x, address.y);
 
-        public Cell GetCell(int row, int column)
+        public Cell GetCell(int row, int col)
         {
-            if (row < 0 || row >= BoardSize || column < 0 || column >= BoardSize)
-                return null;
-
-            return _cells[row, column];
+            return Cells[row * BoardSize + col];
         }
 
-        public Cell[,] GetAllCells()
+        public Cell[] GetRow(int column)
         {
-            return _cells;
+            return Cells.Where(x => x.Column == column).ToArray();
+        }
+
+        public Cell[] GetColumn(int row)
+        {
+            return Cells.Where(x => x.Row == row).ToArray();
+        }
+
+        public Cell[] GetGroup(int blockIndex)
+        {
+            return Cells.Where(x => x.Data.Group == blockIndex).ToArray();
+        }
+
+        public Cell[] GetRelatedCells(Cell cell)
+        {
+            HashSet<Cell> relatedCells = new HashSet<Cell>();
+            relatedCells.UnionWith(GetRow(cell.Data.Row));
+            relatedCells.UnionWith(GetColumn(cell.Data.Column));
+            relatedCells.UnionWith(GetGroup(cell.Data.Group));
+            return relatedCells.ToArray();
+        }
+    }
+
+    public class BoardManager : MonoBehaviour, IBoard
+    {
+        [SerializeField] private Cell _cellPrefab;
+        [SerializeField] private InputButton _inputButtonPrefab;
+        [SerializeField] private Transform _buttonParent;
+        [SerializeField] private Transform _cellContainer;
+
+        public int blockSize { get; private set; } = 3;
+        public int BoardSize => blockSize * blockSize;
+        StandardPuzzleGenerator puzzleGenerator;
+
+        private List<Cell> _cells;
+        public Board Board { get; private set; }
+
+        public void Initialize() => Initialize(3);
+        public void Initialize(int blockSize)
+        {
+            this.blockSize = blockSize;
+            puzzleGenerator = new StandardPuzzleGenerator(blockSize);
+
+            CreateCells();
+            CreateButtons();
+
+            Board = new Board(blockSize, _cells.ToArray());
+            _cells = null;
+        }
+
+        void CreateButtons()
+        {
+            for(int i = 1; i <= BoardSize; i++)
+            {
+                var button = Instantiate(_inputButtonPrefab, _buttonParent);
+                button.SetNum(i);
+            }
         }
 
         private void CreateCells()
         {
             var puzzle = puzzleGenerator.Generate(Difficulty.Expert);
-            _cells = new Cell[BoardSize, BoardSize];
 
             foreach (var cellData in puzzle.Cells)
             {
@@ -49,11 +101,11 @@ namespace Nanpure.Standard.Module
                 var row = cellData.Row;
                 var col = cellData.Column;
 
-                cell.Data.Initialize(row, col, num, cellData.IsRevealed);
+                cell.Data.Initialize(cellData);
                 cell.StateManager.Initialize();
 
-                cell.name = $"Cell_{row}_{col}";
-                _cells[row, col] = cell;
+                cell.name = $"{nameof(Cell)}_{row}_{col}";
+                _cells.Add(cell);
 
                 SetCellPosition(cell, row, col);
 

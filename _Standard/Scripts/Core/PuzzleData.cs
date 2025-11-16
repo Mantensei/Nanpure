@@ -14,13 +14,15 @@ namespace Nanpure.Standard.Core
     {
         public int Row;
         public int Column;
+        public int Group;
         public bool IsRevealed;
         public int Value;
 
-        public CellData(int row, int column, bool isRevealed, int answerValue)
+        public CellData(int row, int column, int gourp, bool isRevealed, int answerValue)
         {
             Row = row;
             Column = column;
+            Group = gourp;
             IsRevealed = isRevealed;
             Value = answerValue;
         }

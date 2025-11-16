@@ -18,6 +18,7 @@ namespace Nanpure.Standard.Module
         public int Value => Data.Num;
         public int Row => Data.Row;
         public int Column => Data.Column;
+        public int Group => Data.Group;
 
         public Vector2Int Address => new Vector2Int(Data.Row, Data.Column);
     }

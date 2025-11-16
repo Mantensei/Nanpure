@@ -9,7 +9,12 @@ namespace Nanpure.Standard
         PuzzleData Generate(int seed, Difficulty difficulty);
     }
 
-    public class StandardPuzzleGenerator : IPuzzleGenerator
+    public interface INampurePuzzle
+    {
+        int[][] Board { get; }
+    }
+
+    public class StandardPuzzleGenerator : IPuzzleGenerator, INampurePuzzle
     {
         public int BoardSize { get; private set; }
         public int BlockSize { get; private set; }
@@ -17,7 +22,8 @@ namespace Nanpure.Standard
 
         public int Seed { get; private set; }
         private System.Random _random;
-        private int[,] _board;
+        private int[][] _board;
+        public int[][] Board => _board;
 
         public StandardPuzzleGenerator() : this(3) { }
 
@@ -31,14 +37,20 @@ namespace Nanpure.Standard
             _random = new System.Random();
         }
 
-        public PuzzleData Generate(Difficulty difficulty) 
+        public PuzzleData Generate(Difficulty difficulty)
             => Generate(_random.Next(), difficulty);
 
         public PuzzleData Generate(int seed, Difficulty difficulty)
         {
             this.Seed = seed;
             _random = new System.Random(Seed);
-            _board = new int[BoardSize, BoardSize];
+
+            // ジャグ配列でボードを初期化
+            _board = new int[BoardSize][];
+            for (int i = 0; i < BoardSize; i++)
+            {
+                _board[i] = new int[BoardSize];
+            }
 
             GenerateCompletedBoard();
 
@@ -53,9 +65,10 @@ namespace Nanpure.Standard
             {
                 int row = i / BoardSize;
                 int col = i % BoardSize;
+                int group = (row / BlockSize) * (BoardSize / BlockSize) + (col / BlockSize);
                 bool isRevealed = puzzle[i] != 0;
                 int answerValue = solution[i];
-                puzzleData.Cells[i] = new CellData(row, col, isRevealed, answerValue);
+                puzzleData.Cells[i] = new CellData(row, col, group, isRevealed, answerValue);
             }
 
             return puzzleData;
@@ -106,7 +119,7 @@ namespace Nanpure.Standard
             {
                 for (int j = 0; j < BlockSize; j++)
                 {
-                    _board[row + i, col + j] = numbers[index++];
+                    _board[row + i][col + j] = numbers[index++];
                 }
             }
         }
@@ -121,7 +134,7 @@ namespace Nanpure.Standard
                 if (row == BoardSize) return true;
             }
 
-            if (_board[row, col] != 0)
+            if (_board[row][col] != 0)
                 return SolveBoard(row, col + 1);
 
             List<int> numbers = new List<int>();
@@ -135,10 +148,10 @@ namespace Nanpure.Standard
             {
                 if (IsValidPlacement(row, col, num))
                 {
-                    _board[row, col] = num;
+                    _board[row][col] = num;
                     if (SolveBoard(row, col + 1))
                         return true;
-                    _board[row, col] = 0;
+                    _board[row][col] = 0;
                 }
             }
 
@@ -150,8 +163,8 @@ namespace Nanpure.Standard
         {
             for (int i = 0; i < BoardSize; i++)
             {
-                if (_board[row, i] == num) return false;
-                if (_board[i, col] == num) return false;
+                if (_board[row][i] == num) return false;
+                if (_board[i][col] == num) return false;
             }
 
             int blockRow = (row / BlockSize) * BlockSize;
@@ -160,7 +173,7 @@ namespace Nanpure.Standard
             {
                 for (int j = 0; j < BlockSize; j++)
                 {
-                    if (_board[blockRow + i, blockCol + j] == num)
+                    if (_board[blockRow + i][blockCol + j] == num)
                         return false;
                 }
             }
@@ -202,14 +215,14 @@ namespace Nanpure.Standard
         // パズルが唯一解を持つかチェック（解が2つ以上見つかったら打ち切り）
         private bool HasUniqueSolution(int[] puzzle)
         {
-            int[,] testBoard = ArrayToBoard(puzzle);
+            int[][] testBoard = ArrayToBoard(puzzle);
             int solutionCount = 0;
             CountSolutions(testBoard, 0, 0, ref solutionCount);
             return solutionCount == 1;
         }
 
         // 再帰的に解の数を数える（2つ見つかった時点で打ち切り）
-        private void CountSolutions(int[,] board, int row, int col, ref int count)
+        private void CountSolutions(int[][] board, int row, int col, ref int count)
         {
             if (count > 1) return;
 
@@ -224,7 +237,7 @@ namespace Nanpure.Standard
                 }
             }
 
-            if (board[row, col] != 0)
+            if (board[row][col] != 0)
             {
                 CountSolutions(board, row, col + 1, ref count);
                 return;
@@ -234,20 +247,20 @@ namespace Nanpure.Standard
             {
                 if (IsValidPlacementOnBoard(board, row, col, num))
                 {
-                    board[row, col] = num;
+                    board[row][col] = num;
                     CountSolutions(board, row, col + 1, ref count);
-                    board[row, col] = 0;
+                    board[row][col] = 0;
                 }
             }
         }
 
         // 指定盤面での配置チェック（CountSolutions用）
-        private bool IsValidPlacementOnBoard(int[,] board, int row, int col, int num)
+        private bool IsValidPlacementOnBoard(int[][] board, int row, int col, int num)
         {
             for (int i = 0; i < BoardSize; i++)
             {
-                if (board[row, i] == num) return false;
-                if (board[i, col] == num) return false;
+                if (board[row][i] == num) return false;
+                if (board[i][col] == num) return false;
             }
 
             int blockRow = (row / BlockSize) * BlockSize;
@@ -256,7 +269,7 @@ namespace Nanpure.Standard
             {
                 for (int j = 0; j < BlockSize; j++)
                 {
-                    if (board[blockRow + i, blockCol + j] == num)
+                    if (board[blockRow + i][blockCol + j] == num)
                         return false;
                 }
             }
@@ -264,7 +277,7 @@ namespace Nanpure.Standard
             return true;
         }
 
-        // 2次元配列を1次元配列に変換
+        // 2次元（ジャグ）配列を1次元配列に変換
         private int[] BoardToArray()
         {
             int[] array = new int[TotalCells];
@@ -272,19 +285,20 @@ namespace Nanpure.Standard
             {
                 for (int j = 0; j < BoardSize; j++)
                 {
-                    array[i * BoardSize + j] = _board[i, j];
+                    array[i * BoardSize + j] = _board[i][j];
                 }
             }
             return array;
         }
 
-        // 1次元配列を2次元配列に変換
-        private int[,] ArrayToBoard(int[] array)
+        // 1次元配列を2次元（ジャグ）配列に変換
+        private int[][] ArrayToBoard(int[] array)
         {
-            int[,] board = new int[BoardSize, BoardSize];
+            int[][] board = new int[BoardSize][];
+            for (int i = 0; i < BoardSize; i++) board[i] = new int[BoardSize];
             for (int i = 0; i < TotalCells; i++)
             {
-                board[i / BoardSize, i % BoardSize] = array[i];
+                board[i / BoardSize][i % BoardSize] = array[i];
             }
             return board;
         }
