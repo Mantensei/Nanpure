@@ -2,27 +2,43 @@
 using UnityEngine.EventSystems;
 using MantenseiLib;
 using UnityEngine.UI;
+using Nanpure.Standard.InputSystem;
 
 namespace Nanpure.Standard.Module
 {
-    public class CellClickHandler : MonoBehaviour
+    public class CellClickHandler : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
     {
         [Parent] public Cell Cell { get; private set; }
-        [GetComponent(HierarchyRelation.Self | HierarchyRelation.Children)]
-        Button button;
 
-        private void Start()
+        [GetComponent(HierarchyRelation.Parent)]
+        InputHandler _inputHandler;
+        InputHandler InputHandler
         {
-            button.onClick.AddListener(OnClick);
+            get
+            {
+                if (!_inputHandler.Safe())
+                     _inputHandler = FindAnyObjectByType<InputHandler>();
+
+                return _inputHandler;
+            }
         }
 
-        public void OnClick()
+        public void OnPointerEnter(PointerEventData eventData)
         {
-            var inputHandler = FindAnyObjectByType<Input.InputHandler>();
-            if (inputHandler != null)
-            {
-                inputHandler.SelectCell(Cell);
-            }
+            if(Input.GetKey(KeyCode.Mouse0))
+                InputHandler.OnCellClick(Cell);
+            else
+                InputHandler.OnCellHoverEnter(Cell);
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            InputHandler.OnCellHoverExit(Cell);
+        }
+
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            InputHandler.OnCellClick(Cell);
         }
     }
 }

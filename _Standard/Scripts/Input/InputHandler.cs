@@ -1,20 +1,42 @@
 ﻿using UnityEngine;
 using Nanpure.Standard.Module;
+using System;
 
-namespace Nanpure.Standard.Input
+namespace Nanpure.Standard.InputSystem
 {
     public class InputHandler : MonoBehaviour
     {
         public Cell SelectedCell { get; private set; }
+        public Action<Cell> onCellSelected;
+        public Action<Cell> onCellUpdate;
+        public Action<Cell> onCellHoverEnter;
+        public Action<Cell> onCellHoverExit;
 
-        public void SelectCell(Cell cell)
+        public void OnCellHoverEnter(Cell cell)
+        {
+            onCellHoverEnter?.Invoke(cell);
+        }
+
+        public void OnCellHoverExit(Cell cell)
+        {
+            onCellHoverExit?.Invoke(cell);
+        }
+
+        public void OnCellClick(Cell cell)
         {            
+            var tmp = SelectedCell;
             SelectedCell = cell;
+
+            if(tmp != SelectedCell)
+                onCellSelected?.Invoke(SelectedCell);
         }
 
         public void InputNumber(int number)
         {
-            SelectedCell?.StateManager?.SetNum(number);
+            if(SelectedCell?.StateManager?.SetNum(number) == true)
+            {
+                onCellUpdate?.Invoke(SelectedCell);
+            }
         }
     }
 }

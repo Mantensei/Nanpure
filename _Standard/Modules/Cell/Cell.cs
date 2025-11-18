@@ -11,6 +11,8 @@ namespace Nanpure.Standard.Module
         public CellMeta Data { get; private set; }
         [GetComponent(HierarchyRelation.Children)] 
         public CellStateManager StateManager { get; private set; }
+        [GetComponent(HierarchyRelation.Children)] 
+        public IVisual Visualizer { get; private set; }
     }
 
     public partial class Cell

@@ -4,28 +4,33 @@ using MantenseiLib;
 
 namespace Nanpure.Standard.Module
 {
-    /// <summary>セル表示の総合マネージャー（現在は背景色のみ制御）</summary>
-    public class CellVisualizer : MonoBehaviour
+    public interface IVisual
     {
-        [GetComponent(HierarchyRelation.Self | HierarchyRelation.Children)] 
+        public void SetVisual(object data);
+    }
+
+    public class CellVisualizer : MonoBehaviour, IVisual
+    {
+        [Parent] public Cell Cell { get; private set; }
+        private CellMeta _meta => Cell.Data;
+
+        [Sibling] 
         private Image _background;
 
         [SerializeField] private Color _normalColor = Color.white;
         [SerializeField] private Color _fixedColor = new Color(0.9f, 0.9f, 0.9f);
 
-        [Parent] public Cell Cell { get; private set; }
-        private CellMeta _meta => Cell.Data;
-
-        private void Start()
+        public void SetBackgroundColor(Color color)
         {
-            UpdateBackground();
+            _background.color = color;
         }
 
-        private void UpdateBackground()
+        public void SetVisual(object data)
         {
-            if (_background == null) return;
-
-            _background.color = _meta.IsRevealed ? _fixedColor : _normalColor;
+            if(data is Color color)
+            {
+                SetBackgroundColor(color);
+            }
         }
     }
 }

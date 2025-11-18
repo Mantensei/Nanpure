@@ -47,8 +47,8 @@ namespace Nanpure.Standard.Module
         public Cell[] GetRelatedCells(Cell cell)
         {
             HashSet<Cell> relatedCells = new HashSet<Cell>();
-            relatedCells.UnionWith(GetRow(cell.Data.Row));
-            relatedCells.UnionWith(GetColumn(cell.Data.Column));
+            relatedCells.UnionWith(GetRow(cell.Data.Column));
+            relatedCells.UnionWith(GetColumn(cell.Data.Row));
             relatedCells.UnionWith(GetGroup(cell.Data.Group));
             return relatedCells.ToArray();
         }
@@ -65,7 +65,7 @@ namespace Nanpure.Standard.Module
         public int BoardSize => blockSize * blockSize;
         StandardPuzzleGenerator puzzleGenerator;
 
-        private List<Cell> _cells;
+        private List<Cell> _cells = new();
         public Board Board { get; private set; }
 
         public void Initialize() => Initialize(3);

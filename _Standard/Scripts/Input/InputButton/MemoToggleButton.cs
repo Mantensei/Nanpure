@@ -1,12 +1,12 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-using Nanpure.Standard.Input;
-using MantenseiLib;
+﻿using MantenseiLib;
+using Nanpure.Standard.InputSystem;
 using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace Nanpure.Standard.Module
 {
-    public class InputButton : MonoBehaviour
+    public class MemoToggleButton : MonoBehaviour
     {
         [SerializeField] private int _number = 1;
 
@@ -16,11 +16,9 @@ namespace Nanpure.Standard.Module
         [GetComponent(HierarchyRelation.Self | HierarchyRelation.Children)]
         TextMeshProUGUI buttonText;
 
-        public void SetNum(int num) 
-        {
-            _number = num; 
-            buttonText.text = num.ToString();
-        }
+        [Parent] Root root;
+
+        [Sibling] InputHandler inputHandler;
 
         private void Start()
         {
@@ -29,7 +27,6 @@ namespace Nanpure.Standard.Module
 
         private void OnClick()
         {
-            var inputHandler = FindFirstObjectByType<InputHandler>();
             inputHandler.InputNumber(_number);
         }
     }
