@@ -7,10 +7,16 @@ namespace Nanpure.Standard.Module
 {
     public partial class Cell : MonoBehaviour
     {
+        [GetComponent(HierarchyRelation.Parent)]
+        Root a;
+        [GetComponent(HierarchyRelation.Parent)]
+        public IBoard _board;
+        public Board Board => _board.Board;
+
         [GetComponent(HierarchyRelation.Children)] 
         public CellMeta Data { get; private set; }
         [GetComponent(HierarchyRelation.Children)] 
-        public CellStateManager StateManager { get; private set; }
+        public CellStateManager State { get; private set; }
         [GetComponent(HierarchyRelation.Children)] 
         public IVisual Visualizer { get; private set; }
     }

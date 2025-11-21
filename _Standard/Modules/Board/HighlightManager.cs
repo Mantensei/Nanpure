@@ -1,9 +1,11 @@
 ﻿using MantenseiLib;
 using Nanpure.Standard.InputSystem;
 using Nanpure.Standard.Module;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace Nanpure.Standard.Core
@@ -20,29 +22,39 @@ namespace Nanpure.Standard.Core
         [Sibling] private InputHandler inputHandler;
 
         public Board Board => _boardManager.Board;
-        List<Cell> _preservedCells = new();
+        int _preserveNum = -1;
+        bool Preserved => _preserveNum > 0;
 
-        public void PreserveCell(params Cell[] cells)
+        public event Action<int> OnPreserve;
+
+        public void Preserve(int num)
         {
-            _preservedCells.AddRange(cells);
+            _preserveNum = num;
+            OnPreserve?.Invoke(num);
+            UpdateHighlights();
         }
 
-        public void ClearPreservedCells()
-        {
-            _preservedCells.Clear();
-        }
+        public void ClearPreserve() => Preserve(-1);
 
-        private Color _normalColor => _colorSettings.White;
-        private Color _relatedColor => _colorSettings.DarkWhite;
-        private Color _sameNumberColor => _colorSettings.LightDark;
-        private Color _selectedColor => _colorSettings.SystemWhite;
-        private Color _hoverColor => _colorSettings.LightDark;
+        public Color NormalColor => _colorSettings.White;
+        public Color RelatedColor => _colorSettings.DarkWhite;
+        public Color SameNumberColor => _colorSettings.LightDark;
+        public Color SelectedColor => _colorSettings.SystemWhite;
+        public Color HoverColor => _colorSettings.LightDark;
 
         private void Start()
         {
-            inputHandler.onCellSelected += UpdateHighlights;
-            inputHandler.onCellHoverEnter += (c) => HighLight(c, _hoverColor);
+            inputHandler.onCellSelected += OnSelected;
+            inputHandler.onCellHoverEnter += (c) => HighLight(c, HoverColor);
             inputHandler.onCellHoverExit += (c) => UpdateHighlights(_selectedCell);
+        }
+
+        void OnSelected(Cell cell)
+        {
+            if(cell.State.IsCorrect)
+                Preserve(cell.Value);
+
+            UpdateHighlights(cell);
         }
 
         public void UpdateHighlights() => UpdateHighlights(_selectedCell);
@@ -53,10 +65,11 @@ namespace Nanpure.Standard.Core
             // 全セルをクリア
             ClearHighLight();
 
-            if (_preservedCells.Any())
+            if (Preserved)
             {
-                //予約済みセルは固定表示
-                HighLight(_preservedCells, _sameNumberColor);
+                var cells = Board.GetSameCells(_preserveNum).Where(x => x.State.IsCorrect); ;
+                HighLight(cells, SameNumberColor);
+
                 return;
             }
 
@@ -66,29 +79,29 @@ namespace Nanpure.Standard.Core
 
             // 1. 関連セル（行・列・ブロック）
             var relatedCells = Board.GetRelatedCells(_selectedCell);
-            HighLight(relatedCells, _relatedColor);
+            HighLight(relatedCells, RelatedColor);
 
 
             // 2. 同じ数字
-            if (_selectedCell.StateManager.IsCorrct)
+            if (_selectedCell.State.IsCorrct)
             {
                 var num = _selectedCell.Value;
                 HighLighSameNum(num);
             }
 
             // 3. 選択中（最優先）
-            HighLight(_selectedCell, _selectedColor);
+            HighLight(_selectedCell, SelectedColor);
         }
 
         public void ClearHighLight()
         {
-            HighLight(Board.Cells, _normalColor);
+            HighLight(Board.Cells, NormalColor);
         }
 
         public void HighLighSameNum(int num)
         {
-            var sameNumberCells = Board.GetSameCells(num).Where(x => x.StateManager.IsCorrect);
-            HighLight(sameNumberCells.ToArray(), _sameNumberColor);
+            var sameNumberCells = Board.GetSameCells(num).Where(x => x.State.IsCorrect);
+            HighLight(sameNumberCells.ToArray(), SameNumberColor);
         }
 
         void HighLight(IEnumerable<Cell> cells, Color color)

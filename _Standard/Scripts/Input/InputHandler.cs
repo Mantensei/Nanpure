@@ -33,7 +33,7 @@ namespace Nanpure.Standard.InputSystem
 
         public void InputNumber(int number)
         {
-            if(SelectedCell?.StateManager?.SetNum(number) == true)
+            if(SelectedCell?.State?.SetNum(number) == true)
             {
                 onCellUpdate?.Invoke(SelectedCell);
             }
@@ -41,7 +41,7 @@ namespace Nanpure.Standard.InputSystem
 
         public void InputMemo(int number, bool isOn)
         {
-            if(SelectedCell?.StateManager?.SetMemo(number, isOn) == true)
+            if(SelectedCell?.State?.SetMemo(number, isOn) == true)
             {
                 onCellUpdate?.Invoke(SelectedCell);
             }
@@ -49,7 +49,7 @@ namespace Nanpure.Standard.InputSystem
 
         public void ToggleMemo(int number)
         {
-            if(SelectedCell?.StateManager?.ToggleMemo(number) == true)
+            if(SelectedCell?.State?.ToggleMemo(number) == true)
             {
                 onCellUpdate?.Invoke(SelectedCell);
             }

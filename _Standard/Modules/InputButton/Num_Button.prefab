@@ -120,7 +120,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   HighlightColor: {r: 0.35686275, g: 0.427451, b: 0.38431376, a: 1}
-  SwipeThreshold: 1
+  SwipeThreshold: 0.1
 --- !u!1 &3453331956630161406
 GameObject:
   m_ObjectHideFlags: 0

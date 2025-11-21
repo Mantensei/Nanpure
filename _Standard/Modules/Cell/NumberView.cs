@@ -9,11 +9,11 @@ namespace Nanpure.Standard.Module
         [GetComponent(HierarchyRelation.Self | HierarchyRelation.Children)] 
         private TextMeshProUGUI _text;
         [Parent] public Cell Cell { get; private set; }
-        private CellStateManager _state => Cell.StateManager;
+        private CellStateManager _state => Cell.State;
 
         Color Empty = new Color(1f, 1f, 1f, 0f);
         Color Revealed = new Color(0f, 0f, 0f, 1f);
-        Color Correct = new Color(0f, 1f, 0f, 1f);
+        Color Correct = new Color(0.1f, 0.8f, 0.2f, 1f);
         Color Incorrect = new Color(1f, 0f, 0f, 1f);
 
         private void Start()
@@ -27,7 +27,7 @@ namespace Nanpure.Standard.Module
             _state.OnValueChanged -= OnValueChanged;
         }
 
-        private void OnValueChanged(int value)
+        private void OnValueChanged(Cell value)
         {
             UpdateDisplay();
         }

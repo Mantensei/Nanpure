@@ -28,6 +28,7 @@ namespace Nanpure.Standard.Module
         public Cell[] Cells { get; private set; }
         public int BlockSize { get; private set; }
         public int BoardSize => BlockSize * BlockSize;
+        public HashSet<int> HashSet => new HashSet<int>(Enumerable.Range(1, BoardSize));
 
         public Board(int blockSize, Cell[] board)
         {
@@ -109,20 +110,18 @@ namespace Nanpure.Standard.Module
 
             foreach (var cellData in puzzle.Cells)
             {
-                var cell = Instantiate(_cellPrefab);
+                var cell = Instantiate(_cellPrefab, _cellContainer);
                 var num = cellData.Value;
                 var row = cellData.Row;
                 var col = cellData.Column;
 
                 cell.Data.Initialize(cellData);
-                cell.StateManager.Initialize();
+                cell.State.Initialize();
 
                 cell.name = $"{nameof(Cell)}_{row}_{col}";
                 _cells.Add(cell);
 
                 SetCellPosition(cell, row, col);
-
-                cell.transform.SetParent(_cellContainer, false);
             }
         }
 

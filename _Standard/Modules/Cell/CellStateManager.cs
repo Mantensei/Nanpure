@@ -31,10 +31,11 @@ namespace Nanpure.Standard.Module
 
         public bool IsCorrect => DisplayNum == _meta.Num;
         private HashSet<int> _memo = new HashSet<int>();
+        public bool HasMemo => _memo.Count > 0;
         public IReadOnlyCollection<int> Memo => _memo;
 
-        public event Action<int> OnValueChanged;
-        public event Action<int, bool> OnMemoChanged;
+        public event Action<Cell> OnValueChanged;
+        public event Action OnMemoChanged;
 
         public void Initialize()
         {
@@ -58,7 +59,7 @@ namespace Nanpure.Standard.Module
         void ForcibilityInject(int num)
         {
             DisplayNum = num;            
-            OnValueChanged?.Invoke(num);
+            OnValueChanged?.Invoke(_cell);
         }
 
         public bool MemoContains(int num)
@@ -70,6 +71,20 @@ namespace Nanpure.Standard.Module
         {
             bool contains = MemoContains(num);
             return SetMemo(num, !contains);
+        }
+
+        public bool SetMemo(HashSet<int> memo)
+        {
+            if (_memo.SetEquals(memo))
+            {
+                return false;
+            }
+
+            _memo.Clear();
+            _memo.UnionWith(memo);
+
+            OnMemoChanged?.Invoke();
+            return true;
         }
 
         public bool SetMemo(int num, bool add)
@@ -92,7 +107,7 @@ namespace Nanpure.Standard.Module
                 _memo.Remove(num);
             }
 
-            OnMemoChanged?.Invoke(num, add);
+            OnMemoChanged?.Invoke();
             return true;
         }
     }

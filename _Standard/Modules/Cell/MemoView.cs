@@ -1,4 +1,5 @@
 ﻿using MantenseiLib;
+using Nanpure.Standard.Core;
 using System.Linq;
 using System.Text;
 using TMPro;
@@ -11,36 +12,60 @@ namespace Nanpure.Standard.Module
         [GetComponent(HierarchyRelation.Self | HierarchyRelation.Children)]
         private TextMeshProUGUI _text;
         [Parent] public Cell Cell { get; private set; }
-        private CellStateManager _State => Cell.StateManager;
+        private CellStateManager _state => Cell.State;
 
-        private int _gridSize = 3; // 3×3グリッド（変更可能）
+        private int _RowCount = 3;
+        private int GridSize => _RowCount * _RowCount;
+
+        HighlightManager _highlightManager;
+        HighlightManager HighlightManager => _highlightManager ??= FindAnyObjectByType<HighlightManager>();
+        int _highlightNum = -1;
 
         private void Start()
         {
-            _State.OnValueChanged += OnValueChanged;
-            _State.OnMemoChanged += OnMemoChanged;
+            _state.OnValueChanged += OnValueChanged;
+            _state.OnMemoChanged += OnMemoChanged;
+            HighlightManager.OnPreserve += HighlightMemo;
             UpdateDisplay();
         }
 
         private void OnDestroy()
         {
-            _State.OnValueChanged -= OnValueChanged;
-            _State.OnMemoChanged -= OnMemoChanged;
+            _state.OnValueChanged -= OnValueChanged;
+            _state.OnMemoChanged -= OnMemoChanged;
         }
 
-        private void OnValueChanged(int value)
+        public void HighlightMemo(int num)
         {
+            _highlightNum = num;
             UpdateDisplay();
         }
 
-        private void OnMemoChanged(int number, bool isAdded)
+        static void RemoveRelatedMemo(Cell cell)
+        {
+            if (cell?.State?.IsCorrct == true)
+            {
+                foreach (var relation in cell.Board.GetRelatedCells(cell))
+                {
+                    relation.State.SetMemo(cell.Value, false);
+                }
+            }
+        }
+
+        private void OnValueChanged(Cell cell)
+        {
+            UpdateDisplay();
+            RemoveRelatedMemo(cell);
+        }
+
+        private void OnMemoChanged()
         {
             UpdateDisplay();
         }
 
         private void UpdateDisplay()
         {
-            if (_State.State != CellState.Empty || _State.Memo.Count == 0)
+            if (_state.State != CellState.Empty || _state.Memo.Count == 0)
             {
                 SetTextAlpha(0f);
                 return;
@@ -50,35 +75,40 @@ namespace Nanpure.Standard.Module
             SetTextAlpha(1f);
         }
 
-        public string GetColorTagStart(Color color)
+        public string ToBold(string str)
+        {
+            return $"<b>{WrapWithColorTag(str, new Color(0.8f, 0.2f, 0.9f))}</b>";
+            //return $"<b>{WrapWithColorTag(str, HighlightManager.SameNumberColor)}</b>";
+        }
+
+        public string WrapWithColorTag(string str, Color color)
         {
             string colorTag = ColorUtility.ToHtmlStringRGBA(color);
-            return $"<color=#{colorTag}>";
+            return $"<color=#{colorTag}>{str}</color>";
         }
 
         private string GenerateGridText()
         {
-            int totalNumbers = _gridSize * _gridSize;
             StringBuilder result = new StringBuilder();
-            //var colorTagStart = GetColorTagStart(Color.black);
-            var alphaTagStart = GetColorTagStart(Color.clear);
-            var colurTagEnd = "</color>";
 
-            for (int i = 0; i < totalNumbers; i++)
+            for (int i = 0; i < GridSize; i++)
             {
                 int number = i + 1;
-                bool hasMemo = _State.Memo.Contains(number);
+                bool hasMemo = _state.Memo.Contains(number);
+                string s = number.ToString();
 
                 if (hasMemo)
                 {
-                    result.Append(number.ToString());
+                    if (number == _highlightNum)
+                        s = ToBold(s);
                 }
                 else
                 {
-                    result.Append($"{alphaTagStart}{number}{colurTagEnd}");
+                    s = WrapWithColorTag(s, Color.clear);
                 }
+                result.Append(s);
 
-                if (number % _gridSize == 0)
+                if (number % _RowCount == 0)
                 {
                     result.Append("\n");
                 }

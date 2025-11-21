@@ -25,7 +25,9 @@ namespace Nanpure.Standard.UI
 
 		void SetNum(Cell cell)
 		{
-			if (cell.StateManager.IsCorrct)
+			if (cell == null) return;
+
+			if (cell.State.IsCorrct)
 			{
 				CancelInputMode();
 				foreach(var button in _hub.Buttons)
@@ -39,7 +41,7 @@ namespace Nanpure.Standard.UI
 			}
 			else
 			{
-				cell.StateManager.SetNum(Parent.Num);
+				cell.State.SetNum(Parent.Num);
 			}
         }
 
@@ -48,40 +50,24 @@ namespace Nanpure.Standard.UI
 		{
 			InputMode = true;
 			InputHandler.onCellSelected += SetNum;
-			InputHandler.onCellSelected += Preserve;
-			Preserve(null);
 
 			_hub.onAnyButtonClick += CancelInputMode;
 			_hub.onAnyButtonClose += CancelVisual;
 
-
-			HighlightManager.UpdateHighlights();
+			HighlightManager.Preserve(Parent.Num);
         }
 
         public void CancelInputMode()
 		{
 			InputMode = false;
 			InputHandler.onCellSelected -= SetNum;
-			InputHandler.onCellSelected -= Preserve;
 
 			_hub.onAnyButtonClick -= CancelInputMode;
 			_hub.onAnyButtonClose -= CancelVisual;
 
 			ChangeVisual(ColorSettings.White, ColorSettings.Dark);
 
-			HighlightManager.ClearPreservedCells();
-			HighlightManager.UpdateHighlights();
-        }
-
-		void Preserve(Cell cell)
-		{
-            HighlightManager.PreserveCell
-			(
-				HighlightManager.Board
-				.GetSameCells(Parent.Num)
-				.Where(x => x.StateManager.IsCorrct)
-				.ToArray()
-			);
+			HighlightManager.ClearPreserve();
         }
 
 		void CancelVisual()
