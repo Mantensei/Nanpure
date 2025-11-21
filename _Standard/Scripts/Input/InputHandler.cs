@@ -38,5 +38,21 @@ namespace Nanpure.Standard.InputSystem
                 onCellUpdate?.Invoke(SelectedCell);
             }
         }
+
+        public void InputMemo(int number, bool isOn)
+        {
+            if(SelectedCell?.StateManager?.SetMemo(number, isOn) == true)
+            {
+                onCellUpdate?.Invoke(SelectedCell);
+            }
+        }
+
+        public void ToggleMemo(int number)
+        {
+            if(SelectedCell?.StateManager?.ToggleMemo(number) == true)
+            {
+                onCellUpdate?.Invoke(SelectedCell);
+            }
+        }
     }
 }

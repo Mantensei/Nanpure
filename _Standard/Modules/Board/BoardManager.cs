@@ -2,10 +2,23 @@
 using Nanpure.Standard.Core;
 using System.Collections.Generic;
 using System.Linq;
+using Nanpure.Standard.UI;
+using System;
+using MantenseiLib;
 
 namespace Nanpure.Standard.Module
 {
-    public interface IBoard
+    public enum BoardEvent
+    {
+        Prepared,
+    }
+
+    public interface IBoardEventReceiver
+    {
+        void OnBoardEvent(Board board, BoardEvent boardEvent);
+    }
+
+    public interface IBoard : IMonoBehaviour
     {
         Board Board { get; }
     }
@@ -52,12 +65,15 @@ namespace Nanpure.Standard.Module
             relatedCells.UnionWith(GetGroup(cell.Data.Group));
             return relatedCells.ToArray();
         }
+        public Cell[] GetSameCells(int num)
+        {
+            return Cells.Where(x => x.Value == num).ToArray();
+        }
     }
 
     public class BoardManager : MonoBehaviour, IBoard
     {
         [SerializeField] private Cell _cellPrefab;
-        [SerializeField] private InputButton _inputButtonPrefab;
         [SerializeField] private Transform _buttonParent;
         [SerializeField] private Transform _cellContainer;
 
@@ -68,6 +84,7 @@ namespace Nanpure.Standard.Module
         private List<Cell> _cells = new();
         public Board Board { get; private set; }
 
+
         public void Initialize() => Initialize(3);
         public void Initialize(int blockSize)
         {
@@ -75,20 +92,16 @@ namespace Nanpure.Standard.Module
             puzzleGenerator = new StandardPuzzleGenerator(blockSize);
 
             CreateCells();
-            CreateButtons();
 
             Board = new Board(blockSize, _cells.ToArray());
             _cells = null;
-        }
 
-        void CreateButtons()
-        {
-            for(int i = 1; i <= BoardSize; i++)
+            foreach(var obj in FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None))
             {
-                var button = Instantiate(_inputButtonPrefab, _buttonParent);
-                button.SetNum(i);
+                if (obj is IBoardEventReceiver receiver)
+                    receiver.OnBoardEvent(Board, BoardEvent.Prepared);
             }
-        }
+        }        
 
         private void CreateCells()
         {

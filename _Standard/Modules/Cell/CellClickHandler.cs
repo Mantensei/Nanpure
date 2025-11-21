@@ -25,9 +25,9 @@ namespace Nanpure.Standard.Module
 
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if(Input.GetKey(KeyCode.Mouse0))
-                InputHandler.OnCellClick(Cell);
-            else
+            //if(Input.GetKey(KeyCode.Mouse0))
+            //    InputHandler.OnCellClick(Cell);
+            //else
                 InputHandler.OnCellHoverEnter(Cell);
         }
 

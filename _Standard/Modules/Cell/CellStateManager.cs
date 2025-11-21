@@ -61,41 +61,39 @@ namespace Nanpure.Standard.Module
             OnValueChanged?.Invoke(num);
         }
 
-        public bool AddMemo(int number)
+        public bool MemoContains(int num)
         {
-            if (_meta.IsRevealed) return false;
-            if (number < 1 || number > 9) return false;
-            if (_memo.Contains(number)) return false;
-
-            _memo.Add(number);
-            OnMemoChanged?.Invoke(number, true);
-            return true;
+            return _memo.Contains(num);
         }
 
-        public bool RemoveMemo(int number)
+        public bool ToggleMemo(int num)
         {
-            if (!_memo.Contains(number)) return false;
-
-            _memo.Remove(number);
-            OnMemoChanged?.Invoke(number, false);
-            return true;
+            bool contains = MemoContains(num);
+            return SetMemo(num, !contains);
         }
 
-        public void ToggleMemo(int number)
+        public bool SetMemo(int num, bool add)
         {
-            if (_memo.Contains(number))
-                RemoveMemo(number);
-            else
-                AddMemo(number);
-        }
+            if (State != CellState.Empty)
+                return false;
 
-        public void ClearAllMemos()
-        {
-            var numbers = new List<int>(_memo);
-            foreach (var num in numbers)
+            bool contains = MemoContains(num);
+
+            if (add)
             {
-                RemoveMemo(num);
+                if (contains)
+                    return false;
+                _memo.Add(num);
             }
+            else
+            {
+                if (!contains)
+                    return false;
+                _memo.Remove(num);
+            }
+
+            OnMemoChanged?.Invoke(num, add);
+            return true;
         }
     }
 

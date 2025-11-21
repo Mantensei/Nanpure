@@ -1,5 +1,6 @@
 ﻿using MantenseiLib;
 using System.Linq;
+using System.Text;
 using TMPro;
 using UnityEngine;
 
@@ -39,33 +40,29 @@ namespace Nanpure.Standard.Module
 
         private void UpdateDisplay()
         {
-            if (_text == null) return;
-
-            // 値が入力されている場合は透明にする
-            if (_State.DisplayNum > 0)
+            if (_State.State != CellState.Empty || _State.Memo.Count == 0)
             {
-                _text.text = GenerateGridText();
                 SetTextAlpha(0f);
                 return;
             }
 
-            // メモが空なら透明
-            if (_State.Memo.Count == 0)
-            {
-                _text.text = GenerateGridText();
-                SetTextAlpha(0f);
-                return;
-            }
-
-            // メモ表示
             _text.text = GenerateGridText();
             SetTextAlpha(1f);
+        }
+
+        public string GetColorTagStart(Color color)
+        {
+            string colorTag = ColorUtility.ToHtmlStringRGBA(color);
+            return $"<color=#{colorTag}>";
         }
 
         private string GenerateGridText()
         {
             int totalNumbers = _gridSize * _gridSize;
-            var result = "";
+            StringBuilder result = new StringBuilder();
+            //var colorTagStart = GetColorTagStart(Color.black);
+            var alphaTagStart = GetColorTagStart(Color.clear);
+            var colurTagEnd = "</color>";
 
             for (int i = 0; i < totalNumbers; i++)
             {
@@ -74,22 +71,20 @@ namespace Nanpure.Standard.Module
 
                 if (hasMemo)
                 {
-                    result += number.ToString();
+                    result.Append(number.ToString());
                 }
                 else
                 {
-                    // メモがない数字は透明化
-                    result += $"<color=#00000000>{number}</color>";
+                    result.Append($"{alphaTagStart}{number}{colurTagEnd}");
                 }
 
-                // グリッドサイズごとに改行
                 if (number % _gridSize == 0)
                 {
-                    result += "\n";
+                    result.Append("\n");
                 }
             }
 
-            return result;
+            return result.ToString();
         }
 
         private void SetTextAlpha(float alpha)

@@ -19,7 +19,18 @@ namespace Nanpure.Standard.Core
         [Sibling] private ColorSettings _colorSettings;
         [Sibling] private InputHandler inputHandler;
 
-        private Board Board => _boardManager.Board;
+        public Board Board => _boardManager.Board;
+        List<Cell> _preservedCells = new();
+
+        public void PreserveCell(params Cell[] cells)
+        {
+            _preservedCells.AddRange(cells);
+        }
+
+        public void ClearPreservedCells()
+        {
+            _preservedCells.Clear();
+        }
 
         private Color _normalColor => _colorSettings.White;
         private Color _relatedColor => _colorSettings.DarkWhite;
@@ -34,11 +45,20 @@ namespace Nanpure.Standard.Core
             inputHandler.onCellHoverExit += (c) => UpdateHighlights(_selectedCell);
         }
 
+        public void UpdateHighlights() => UpdateHighlights(_selectedCell);
+
         private void UpdateHighlights(Cell selectedCell)
         {
-            // 全セルをクリア
-            HighLight(Board.Cells, _normalColor);
             _selectedCell = selectedCell;
+            // 全セルをクリア
+            ClearHighLight();
+
+            if (_preservedCells.Any())
+            {
+                //予約済みセルは固定表示
+                HighLight(_preservedCells, _sameNumberColor);
+                return;
+            }
 
             if (_selectedCell == null) return;
 
@@ -48,18 +68,27 @@ namespace Nanpure.Standard.Core
             var relatedCells = Board.GetRelatedCells(_selectedCell);
             HighLight(relatedCells, _relatedColor);
 
+
             // 2. 同じ数字
             if (_selectedCell.StateManager.IsCorrct)
             {
                 var num = _selectedCell.Value;
-                var sameNumberCells = Board.Cells
-                    .Where(c => c.StateManager.DisplayNum == num);
-
-                HighLight(sameNumberCells.ToArray(), _sameNumberColor);
+                HighLighSameNum(num);
             }
 
             // 3. 選択中（最優先）
             HighLight(_selectedCell, _selectedColor);
+        }
+
+        public void ClearHighLight()
+        {
+            HighLight(Board.Cells, _normalColor);
+        }
+
+        public void HighLighSameNum(int num)
+        {
+            var sameNumberCells = Board.GetSameCells(num).Where(x => x.StateManager.IsCorrect);
+            HighLight(sameNumberCells.ToArray(), _sameNumberColor);
         }
 
         void HighLight(IEnumerable<Cell> cells, Color color)
