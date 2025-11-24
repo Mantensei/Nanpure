@@ -43,7 +43,7 @@ namespace Nanpure.Standard.Module
 
         static void RemoveRelatedMemo(Cell cell)
         {
-            if (cell?.State?.IsCorrct == true)
+            if (cell?.State?.IsCorrect == true)
             {
                 foreach (var relation in cell.Board.GetRelatedCells(cell))
                 {

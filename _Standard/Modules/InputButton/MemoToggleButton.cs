@@ -1,4 +1,5 @@
 ﻿using MantenseiLib;
+using MantenseiLib.UI;
 using Nanpure.Standard.InputSystem;
 using TMPro;
 using UnityEngine;
@@ -8,26 +9,51 @@ namespace Nanpure.Standard.Module
 {
     public class MemoToggleButton : MonoBehaviour
     {
-        [SerializeField] private int _number = 1;
+        [SerializeField]
+        Sprite _default;
+
+        [SerializeField]
+        Sprite _pressed;
 
         [GetComponent(HierarchyRelation.Self | HierarchyRelation.Children)]
-        Button button;
+        Image _image;
 
-        [GetComponent(HierarchyRelation.Self | HierarchyRelation.Children)]
-        TextMeshProUGUI buttonText;
+        [GetComponent(HierarchyRelation.Parent)]
+        IGameStateProvider _provider;
+        IGameStateEntity StateManager => _provider.GameStateReference;
 
-        [Parent] Root root;
+        public bool MemoModeToggled { get; private set; } = false;
 
-        [Sibling] InputHandler inputHandler;
-
-        private void Start()
+        public bool MemoMode
         {
-            button.onClick.AddListener(OnClick);
+            get => StateManager.MemoMode;
+            set
+            {
+                if(MemoModeToggled)
+                    StateManager.MemoMode = true;
+                else
+                    StateManager.MemoMode = value;
+                _image.sprite = MemoMode ? _pressed : _default;
+            }
         }
 
-        private void OnClick()
+        [Button]
+        void ToggleMemoMode()
         {
-            inputHandler.InputNumber(_number);
+            MemoModeToggled = !MemoModeToggled;
+        }
+
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.Tab))
+            {
+                ToggleMemoMode();
+            }
+
+            // 👇 Shift押下時は一時的にメモモードON
+            // NumLockがOffだとShiftが暴発する！！！！！！１１１１１
+            bool isShift = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+            MemoMode = isShift ? true : MemoModeToggled;
         }
     }
 }

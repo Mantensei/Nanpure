@@ -8,10 +8,8 @@ namespace Nanpure.Standard.Module
     public partial class Cell : MonoBehaviour
     {
         [GetComponent(HierarchyRelation.Parent)]
-        Root a;
-        [GetComponent(HierarchyRelation.Parent)]
-        public IBoard _board;
-        public Board Board => _board.Board;
+        public IBoardProvider _board;
+        public Board Board => _board.BoardReference;
 
         [GetComponent(HierarchyRelation.Children)] 
         public CellMeta Data { get; private set; }

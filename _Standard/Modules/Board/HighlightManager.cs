@@ -17,11 +17,11 @@ namespace Nanpure.Standard.Core
         [Parent]
         Root _root;
 
-        [Sibling] private IBoard _boardManager;
+        [Sibling] private IBoardProvider _boardManager;
         [Sibling] private ColorSettings _colorSettings;
         [Sibling] private InputHandler inputHandler;
 
-        public Board Board => _boardManager.Board;
+        public Board Board => _boardManager.BoardReference;
         int _preserveNum = -1;
         bool Preserved => _preserveNum > 0;
 
@@ -51,8 +51,8 @@ namespace Nanpure.Standard.Core
 
         void OnSelected(Cell cell)
         {
-            if(cell.State.IsCorrect)
-                Preserve(cell.Value);
+            //if(cell.State.IsCorrect)
+            //    Preserve(cell.Value);
 
             UpdateHighlights(cell);
         }
@@ -75,6 +75,11 @@ namespace Nanpure.Standard.Core
 
             if (_selectedCell == null) return;
 
+            if(_selectedCell.State.IsCorrect)
+                OnPreserve?.Invoke(_selectedCell.Value);
+            else
+                OnPreserve?.Invoke(-1);
+
             // 優先度低い順に上書き
 
             // 1. 関連セル（行・列・ブロック）
@@ -83,7 +88,7 @@ namespace Nanpure.Standard.Core
 
 
             // 2. 同じ数字
-            if (_selectedCell.State.IsCorrct)
+            if (_selectedCell.State.IsCorrect)
             {
                 var num = _selectedCell.Value;
                 HighLighSameNum(num);

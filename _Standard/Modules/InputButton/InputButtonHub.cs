@@ -25,7 +25,7 @@ namespace Nanpure.Standard.UI
                 swipeMenu.onClick += () => onAnyButtonClick?.Invoke();
                 swipeMenu.onOpenMenu += () => onAnyButtonOpen?.Invoke();
                 swipeMenu.onCloseMenu += () => onAnyButtonClose?.Invoke();
-                button.SetNum(i);
+                button.Initialize(i);
             }
         }
 

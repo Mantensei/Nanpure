@@ -11,6 +11,7 @@ namespace Nanpure.Standard.Module
     public enum BoardEvent
     {
         Prepared,
+        Clear,
     }
 
     public interface IBoardEventReceiver
@@ -18,14 +19,15 @@ namespace Nanpure.Standard.Module
         void OnBoardEvent(Board board, BoardEvent boardEvent);
     }
 
-    public interface IBoard : IMonoBehaviour
+    public interface IBoardProvider : IMonoBehaviour
     {
-        Board Board { get; }
+        Board BoardReference { get; }
     }
 
     public class Board
     {
         public Cell[] Cells { get; private set; }
+        public int Count => Cells.Length;
         public int BlockSize { get; private set; }
         public int BoardSize => BlockSize * BlockSize;
         public HashSet<int> HashSet => new HashSet<int>(Enumerable.Range(1, BoardSize));
@@ -72,7 +74,7 @@ namespace Nanpure.Standard.Module
         }
     }
 
-    public class BoardManager : MonoBehaviour, IBoard
+    public class BoardManager : MonoBehaviour, IBoardProvider
     {
         [SerializeField] private Cell _cellPrefab;
         [SerializeField] private Transform _buttonParent;
@@ -83,7 +85,7 @@ namespace Nanpure.Standard.Module
         StandardPuzzleGenerator puzzleGenerator;
 
         private List<Cell> _cells = new();
-        public Board Board { get; private set; }
+        public Board BoardReference { get; private set; }
 
 
         public void Initialize() => Initialize(3);
@@ -94,13 +96,13 @@ namespace Nanpure.Standard.Module
 
             CreateCells();
 
-            Board = new Board(blockSize, _cells.ToArray());
+            BoardReference = new Board(blockSize, _cells.ToArray());
             _cells = null;
 
             foreach(var obj in FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None))
             {
                 if (obj is IBoardEventReceiver receiver)
-                    receiver.OnBoardEvent(Board, BoardEvent.Prepared);
+                    receiver.OnBoardEvent(BoardReference, BoardEvent.Prepared);
             }
         }        
 

@@ -13,7 +13,7 @@ namespace Nanpure.Standard.Module
 
         public int DisplayNum { get; private set; } = -1;
         public bool IsEmpty => State == CellState.Empty;
-        public bool IsCorrct => State == CellState.Correct || State == CellState.Revealed;
+        public bool IsCorrect => State == CellState.Correct || State == CellState.Revealed;
         public CellState State
         {
             get
@@ -29,7 +29,6 @@ namespace Nanpure.Standard.Module
             }
         }
 
-        public bool IsCorrect => DisplayNum == _meta.Num;
         private HashSet<int> _memo = new HashSet<int>();
         public bool HasMemo => _memo.Count > 0;
         public IReadOnlyCollection<int> Memo => _memo;

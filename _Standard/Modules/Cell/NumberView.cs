@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using TMPro;
 using MantenseiLib;
+using Nanpure.Standard.Logic;
+using UnityEngine.UI;
 
 namespace Nanpure.Standard.Module
 {
@@ -15,10 +17,23 @@ namespace Nanpure.Standard.Module
         Color Revealed = new Color(0f, 0f, 0f, 1f);
         Color Correct = new Color(0.1f, 0.8f, 0.2f, 1f);
         Color Incorrect = new Color(1f, 0f, 0f, 1f);
+        Color Disabled = new Color(0.5f, 0.5f, 0.5f, 1f);
+
+        [GetComponent(HierarchyRelation.Parent)]
+        IBoardMonitor _monitor;
+        BoardMonitor Monitor => _monitor.BoardMonitorReference;
 
         private void Start()
         {
             _state.OnValueChanged += OnValueChanged;
+            Monitor.onUsedUp += (num) =>
+            {
+                if(num == Cell.Value)
+                {
+                    _text.color = Disabled;
+                }
+            };
+
             UpdateDisplay();
         }
 

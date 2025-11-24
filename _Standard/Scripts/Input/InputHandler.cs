@@ -4,13 +4,47 @@ using System;
 
 namespace Nanpure.Standard.InputSystem
 {
-    public class InputHandler : MonoBehaviour
+    public interface IInputHandlerProvider
+    {
+        IInputHandlerEntity InputHandlerReference {  get; }
+    }
+
+    public interface IInputHandlerEntity
+    {
+        void InputNumber(int number);
+        void InputMemo(int number, bool value);
+        void ToggleMemo(int number);
+    }
+
+    public interface IInputActionHandlerProvider
+    {
+        IInputActionHandlerEntity InputActionHandlerReference { get; }
+    }
+
+    public interface IInputActionHandlerEntity
+    {
+        Cell SelectedCell { get; }
+
+        event Action<Cell> onCellSelected;
+        event Action<Cell> onCellUpdate;
+        event Action<Cell> onCellHoverEnter;
+        event Action<Cell> onCellHoverExit;
+    }
+
+    public class InputHandler : MonoBehaviour, 
+        IInputHandlerEntity, IInputHandlerProvider,
+        IInputActionHandlerEntity, IInputActionHandlerProvider
     {
         public Cell SelectedCell { get; private set; }
-        public Action<Cell> onCellSelected;
-        public Action<Cell> onCellUpdate;
-        public Action<Cell> onCellHoverEnter;
-        public Action<Cell> onCellHoverExit;
+
+        public IInputHandlerEntity InputHandlerReference => this;
+
+        public IInputActionHandlerEntity InputActionHandlerReference => this;
+
+        public event Action<Cell> onCellSelected;
+        public event Action<Cell> onCellUpdate;
+        public event Action<Cell> onCellHoverEnter;
+        public event Action<Cell> onCellHoverExit;
 
         public void OnCellHoverEnter(Cell cell)
         {
@@ -27,7 +61,7 @@ namespace Nanpure.Standard.InputSystem
             var tmp = SelectedCell;
             SelectedCell = cell;
 
-            if(tmp != SelectedCell)
+            //if(tmp != SelectedCell)
                 onCellSelected?.Invoke(SelectedCell);
         }
 
@@ -45,7 +79,7 @@ namespace Nanpure.Standard.InputSystem
             {
                 onCellUpdate?.Invoke(SelectedCell);
             }
-        }
+        }   
 
         public void ToggleMemo(int number)
         {

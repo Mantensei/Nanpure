@@ -3,7 +3,7 @@ using Nanpure.Standard.Module;
 using System.Linq;
 using UnityEngine;
 
-namespace Nanpre.Standard.Graphics
+namespace Nanpure.Standard.Graphics
 {
     public class BorderCreater : MonoBehaviour, IBoardEventReceiver
     {

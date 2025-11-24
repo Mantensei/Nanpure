@@ -1,13 +1,13 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
-using Nanpre.Standard;
+using Nanpure.Standard;
 using Nanpure.Standard.Module;
 using MantenseiLib;
 using System;
 using System.Linq;
 
-namespace Nanpre.Standard.Graphics
+namespace Nanpure.Standard.Graphics
 {
     public class CellBorderRenderer : MonoBehaviour
     {

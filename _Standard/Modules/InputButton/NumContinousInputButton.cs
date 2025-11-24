@@ -25,27 +25,54 @@ namespace Nanpure.Standard.UI
 
 		void SetNum(Cell cell)
 		{
-			if (cell == null) return;
+            if (cell == null)
+            {
+                CancelInputMode(); 
+				return;
+            }
 
-			if (cell.State.IsCorrct)
+            if (cell.State.IsCorrect)
 			{
 				CancelInputMode();
-				foreach(var button in _hub.Buttons)
-				{
-					if(button.Num == cell.Value)
-					{
-						button.GetComponentInChildren<NumContinousInputButton>().BeginInputMode();
-						return;
-					}
-				}
+				return;
+				//foreach(var button in _hub.Buttons)
+				//{
+				//	if (button == null) continue;
+
+				//	if(button.Num == cell.Value)
+				//	{
+				//		button.GetComponentInChildren<NumContinousInputButton>().BeginInputMode();
+				//		return;
+				//	}
+				//}
 			}
 			else
 			{
-				cell.State.SetNum(Parent.Num);
+				//cell.State.SetNum(Parent.Num);
+
+				if (Input.GetKey(KeyCode.Mouse1))
+					Parent.InputMemo();
+				else
+					Parent.InputNum();
 			}
         }
 
-		[Button]
+        private void Start()
+        {
+			Parent.onClick += (data) =>
+			{
+				if (data.button == UnityEngine.EventSystems.PointerEventData.InputButton.Right)
+					BeginInputMode();
+			};
+
+			Parent.onActiveChanged += (b) =>
+			{
+				if (b == false)
+					CancelInputMode();
+			};
+        }
+
+        [Button]
 		public void BeginInputMode()
 		{
 			InputMode = true;
@@ -65,9 +92,8 @@ namespace Nanpure.Standard.UI
 			_hub.onAnyButtonClick -= CancelInputMode;
 			_hub.onAnyButtonClose -= CancelVisual;
 
-			ChangeVisual(ColorSettings.White, ColorSettings.Dark);
-
 			HighlightManager.ClearPreserve();
+			ChangeVisual(ColorSettings.White, ColorSettings.Dark);
         }
 
 		void CancelVisual()

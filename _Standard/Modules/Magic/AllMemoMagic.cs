@@ -4,14 +4,14 @@ using Nanpure.Standard.Module;
 using System.Linq;
 using UnityEngine;
 
-namespace Nanpre.Modules
+namespace Nanpure.Modules
 {
 	public class AllMemoMagic : MonoBehaviour
 	{
 		[GetComponent(HierarchyRelation.Parent)]
 		CommonReferenceHub _referenceHub;
 
-		public Board Board => _referenceHub.Board;
+		public Board Board => _referenceHub.BoardReference;
 
 		[Button]
 		public void MemoAll()
@@ -22,7 +22,7 @@ namespace Nanpre.Modules
 				if (!state.IsEmpty) continue;
 				if (state.HasMemo) continue;
 
-				var relatedCell = Board.GetRelatedCells(cell).Where(x => x.State.IsCorrct);
+				var relatedCell = Board.GetRelatedCells(cell).Where(x => x.State.IsCorrect);
 				var hash = Board.HashSet;
 				var complement = relatedCell.Select(x => x.Value).Distinct();
 				var candidate = hash.Except(complement).ToHashSet();
