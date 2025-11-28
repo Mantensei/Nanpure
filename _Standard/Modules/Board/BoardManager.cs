@@ -86,6 +86,7 @@ namespace Nanpure.Standard.Module
 
         private List<Cell> _cells = new();
         public Board BoardReference { get; private set; }
+        Difficulty _difficulty = Difficulty.Master;
 
 
         public void Initialize() => Initialize(3);
@@ -108,7 +109,7 @@ namespace Nanpure.Standard.Module
 
         private void CreateCells()
         {
-            var puzzle = puzzleGenerator.Generate(Difficulty.Expert);
+            var puzzle = puzzleGenerator.Generate(_difficulty);
 
             foreach (var cellData in puzzle.Cells)
             {

@@ -13,22 +13,24 @@ namespace Nanpure.Modules
 
 		public Board Board => _referenceHub.BoardReference;
 
-		[Button]
-		public void MemoAll()
+		public static void MemoAll(Board board)
 		{
-			foreach (var cell in Board.Cells)
+			foreach (var cell in board.Cells)
 			{
 				var state = cell.State;
 				if (!state.IsEmpty) continue;
 				if (state.HasMemo) continue;
 
-				var relatedCell = Board.GetRelatedCells(cell).Where(x => x.State.IsCorrect);
-				var hash = Board.HashSet;
+				var relatedCell = board.GetRelatedCells(cell).Where(x => x.State.IsCorrect);
+				var hash = board.HashSet;
 				var complement = relatedCell.Select(x => x.Value).Distinct();
 				var candidate = hash.Except(complement).ToHashSet();
 
 				cell.State.SetMemo(candidate);
 			}
 		}
-	} 
+
+		[Button]
+		void MemoAll() => MemoAll(Board);
+    } 
 }

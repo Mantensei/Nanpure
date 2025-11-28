@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: a0c8207deb7da9c4cbec8df3a62cbeed
+guid: 9e2f62fa1465ba141b439c62fbda6355
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -6804992633572030721
-    second: Sora_01_0
+      213: 7707435386940615077
+    second: Yoshiko_02_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -48,7 +48,7 @@ TextureImporter:
   compressionQuality: 50
   spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 1
+  spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 64
@@ -113,7 +113,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Sora_01_0
+      name: Yoshiko_02_0
       rect:
         serializedVersion: 2
         x: 0
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: ff60ac0114fcf81a0800000000000000
-      internalID: -6804992633572030721
+      spriteID: 5a9eedf06af46fa60800000000000000
+      internalID: 7707435386940615077
       vertices: []
       indices: 
       edges: []
@@ -138,7 +138,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 8ad01121995513f4c9c176ac427c0a73
+    spriteID: 16907af79e1b39449b9260b8ab2b103e
     internalID: 0
     vertices: []
     indices: 
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Sora_01_0: -6804992633572030721
+      Yoshiko_02_0: 7707435386940615077
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

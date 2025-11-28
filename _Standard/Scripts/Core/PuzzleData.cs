@@ -7,7 +7,8 @@ namespace Nanpure.Standard.Core
         Easy,
         Normal,
         Hard,
-        Expert
+        Expert,
+        Master,
     }
 
     public class CellData

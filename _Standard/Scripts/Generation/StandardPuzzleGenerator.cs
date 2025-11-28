@@ -19,11 +19,16 @@ namespace Nanpure.Standard
         public int BoardSize { get; private set; }
         public int BlockSize { get; private set; }
         public int TotalCells { get; private set; }
+        private int BlockCountPerSide => BoardSize / BlockSize;
 
         public int Seed { get; private set; }
         private System.Random _random;
         private int[][] _board;
         public int[][] Board => _board;
+
+        private int[] _rowMasks;
+        private int[] _colMasks;
+        private int[] _blockMasks;
 
         public StandardPuzzleGenerator() : this(3) { }
 
@@ -45,12 +50,15 @@ namespace Nanpure.Standard
             this.Seed = seed;
             _random = new System.Random(Seed);
 
-            // ジャグ配列でボードを初期化
             _board = new int[BoardSize][];
             for (int i = 0; i < BoardSize; i++)
             {
                 _board[i] = new int[BoardSize];
             }
+
+            _rowMasks = new int[BoardSize];
+            _colMasks = new int[BoardSize];
+            _blockMasks = new int[BoardSize];
 
             GenerateCompletedBoard();
 
@@ -65,7 +73,7 @@ namespace Nanpure.Standard
             {
                 int row = i / BoardSize;
                 int col = i % BoardSize;
-                int group = (row / BlockSize) * (BoardSize / BlockSize) + (col / BlockSize);
+                int group = (row / BlockSize) * BlockCountPerSide + (col / BlockSize);
                 bool isRevealed = puzzle[i] != 0;
                 int answerValue = solution[i];
                 puzzleData.Cells[i] = new CellData(row, col, group, isRevealed, answerValue);
@@ -74,7 +82,6 @@ namespace Nanpure.Standard
             return puzzleData;
         }
 
-        // 難易度に応じた穴あけ数を返す
         private int GetHolesCount(Difficulty difficulty)
         {
             return difficulty switch
@@ -83,28 +90,57 @@ namespace Nanpure.Standard
                 Difficulty.Normal => 45,
                 Difficulty.Hard => 52,
                 Difficulty.Expert => 58,
+                Difficulty.Master => 81,
                 _ => 45
             };
         }
 
-        // 完成した盤面を生成（対角ブロックを埋めてからバックトラック）
+        private int GetBlockIndex(int row, int col)
+        {
+            return (row / BlockSize) * BlockCountPerSide + (col / BlockSize);
+        }
+
+        private bool CanPlace(int row, int col, int num)
+        {
+            int block = GetBlockIndex(row, col);
+            int bit = 1 << num;
+            return ((_rowMasks[row] | _colMasks[col] | _blockMasks[block]) & bit) == 0;
+        }
+
+        private void PlaceNumber(int row, int col, int num)
+        {
+            int block = GetBlockIndex(row, col);
+            int bit = 1 << num;
+            _rowMasks[row] |= bit;
+            _colMasks[col] |= bit;
+            _blockMasks[block] |= bit;
+            _board[row][col] = num;
+        }
+
+        private void RemoveNumber(int row, int col, int num)
+        {
+            int block = GetBlockIndex(row, col);
+            int bit = 1 << num;
+            _rowMasks[row] &= ~bit;
+            _colMasks[col] &= ~bit;
+            _blockMasks[block] &= ~bit;
+            _board[row][col] = 0;
+        }
+
         private void GenerateCompletedBoard()
         {
             FillDiagonalBlocks();
             SolveBoard(0, 0);
         }
 
-        // 対角線上のブロック（干渉しない）をランダムに埋める
         private void FillDiagonalBlocks()
         {
-            int blockCount = BoardSize / BlockSize;
-            for (int block = 0; block < blockCount; block++)
+            for (int block = 0; block < BlockCountPerSide; block++)
             {
                 FillBlock(block * BlockSize, block * BlockSize);
             }
         }
 
-        // 指定位置のブロックをランダムな数字で埋める
         private void FillBlock(int row, int col)
         {
             List<int> numbers = new List<int>();
@@ -119,12 +155,11 @@ namespace Nanpure.Standard
             {
                 for (int j = 0; j < BlockSize; j++)
                 {
-                    _board[row + i][col + j] = numbers[index++];
+                    PlaceNumber(row + i, col + j, numbers[index++]);
                 }
             }
         }
 
-        // バックトラック法で盤面を完成させる
         private bool SolveBoard(int row, int col)
         {
             if (col == BoardSize)
@@ -146,42 +181,18 @@ namespace Nanpure.Standard
 
             foreach (int num in numbers)
             {
-                if (IsValidPlacement(row, col, num))
+                if (CanPlace(row, col, num))
                 {
-                    _board[row][col] = num;
+                    PlaceNumber(row, col, num);
                     if (SolveBoard(row, col + 1))
                         return true;
-                    _board[row][col] = 0;
+                    RemoveNumber(row, col, num);
                 }
             }
 
             return false;
         }
 
-        // 指定位置に数字を配置できるかチェック（行・列・ブロックの重複確認）
-        private bool IsValidPlacement(int row, int col, int num)
-        {
-            for (int i = 0; i < BoardSize; i++)
-            {
-                if (_board[row][i] == num) return false;
-                if (_board[i][col] == num) return false;
-            }
-
-            int blockRow = (row / BlockSize) * BlockSize;
-            int blockCol = (col / BlockSize) * BlockSize;
-            for (int i = 0; i < BlockSize; i++)
-            {
-                for (int j = 0; j < BlockSize; j++)
-                {
-                    if (_board[blockRow + i][blockCol + j] == num)
-                        return false;
-                }
-            }
-
-            return true;
-        }
-
-        // 完成盤面から穴を開けてパズルを作成（唯一解を保証）
         private int[] CreatePuzzle(int[] solution, int holesToMake)
         {
             int[] puzzle = new int[TotalCells];
@@ -212,72 +223,70 @@ namespace Nanpure.Standard
             return puzzle;
         }
 
-        // パズルが唯一解を持つかチェック（解が2つ以上見つかったら打ち切り）
         private bool HasUniqueSolution(int[] puzzle)
         {
-            int[][] testBoard = ArrayToBoard(puzzle);
+            int[] rowMasks = new int[BoardSize];
+            int[] colMasks = new int[BoardSize];
+            int[] blockMasks = new int[BoardSize];
+
+            for (int i = 0; i < TotalCells; i++)
+            {
+                int num = puzzle[i];
+                if (num == 0) continue;
+
+                int row = i / BoardSize;
+                int col = i % BoardSize;
+                int block = GetBlockIndex(row, col);
+                int bit = 1 << num;
+
+                rowMasks[row] |= bit;
+                colMasks[col] |= bit;
+                blockMasks[block] |= bit;
+            }
+
             int solutionCount = 0;
-            CountSolutions(testBoard, 0, 0, ref solutionCount);
+            CountSolutions(puzzle, 0, rowMasks, colMasks, blockMasks, ref solutionCount);
             return solutionCount == 1;
         }
 
-        // 再帰的に解の数を数える（2つ見つかった時点で打ち切り）
-        private void CountSolutions(int[][] board, int row, int col, ref int count)
+        private void CountSolutions(int[] puzzle, int index, int[] rowMasks, int[] colMasks, int[] blockMasks, ref int count)
         {
             if (count > 1) return;
 
-            if (col == BoardSize)
+            if (index == TotalCells)
             {
-                col = 0;
-                row++;
-                if (row == BoardSize)
-                {
-                    count++;
-                    return;
-                }
-            }
-
-            if (board[row][col] != 0)
-            {
-                CountSolutions(board, row, col + 1, ref count);
+                count++;
                 return;
             }
 
+            if (puzzle[index] != 0)
+            {
+                CountSolutions(puzzle, index + 1, rowMasks, colMasks, blockMasks, ref count);
+                return;
+            }
+
+            int row = index / BoardSize;
+            int col = index % BoardSize;
+            int block = GetBlockIndex(row, col);
+            int usedMask = rowMasks[row] | colMasks[col] | blockMasks[block];
+
             for (int num = 1; num <= BoardSize; num++)
             {
-                if (IsValidPlacementOnBoard(board, row, col, num))
-                {
-                    board[row][col] = num;
-                    CountSolutions(board, row, col + 1, ref count);
-                    board[row][col] = 0;
-                }
+                int bit = 1 << num;
+                if ((usedMask & bit) != 0) continue;
+
+                rowMasks[row] |= bit;
+                colMasks[col] |= bit;
+                blockMasks[block] |= bit;
+
+                CountSolutions(puzzle, index + 1, rowMasks, colMasks, blockMasks, ref count);
+
+                rowMasks[row] &= ~bit;
+                colMasks[col] &= ~bit;
+                blockMasks[block] &= ~bit;
             }
         }
 
-        // 指定盤面での配置チェック（CountSolutions用）
-        private bool IsValidPlacementOnBoard(int[][] board, int row, int col, int num)
-        {
-            for (int i = 0; i < BoardSize; i++)
-            {
-                if (board[row][i] == num) return false;
-                if (board[i][col] == num) return false;
-            }
-
-            int blockRow = (row / BlockSize) * BlockSize;
-            int blockCol = (col / BlockSize) * BlockSize;
-            for (int i = 0; i < BlockSize; i++)
-            {
-                for (int j = 0; j < BlockSize; j++)
-                {
-                    if (board[blockRow + i][blockCol + j] == num)
-                        return false;
-                }
-            }
-
-            return true;
-        }
-
-        // 2次元（ジャグ）配列を1次元配列に変換
         private int[] BoardToArray()
         {
             int[] array = new int[TotalCells];
@@ -291,19 +300,6 @@ namespace Nanpure.Standard
             return array;
         }
 
-        // 1次元配列を2次元（ジャグ）配列に変換
-        private int[][] ArrayToBoard(int[] array)
-        {
-            int[][] board = new int[BoardSize][];
-            for (int i = 0; i < BoardSize; i++) board[i] = new int[BoardSize];
-            for (int i = 0; i < TotalCells; i++)
-            {
-                board[i / BoardSize][i % BoardSize] = array[i];
-            }
-            return board;
-        }
-
-        // リストをシャッフル
         private void Shuffle<T>(List<T> list)
         {
             for (int i = list.Count - 1; i > 0; i--)

@@ -30,8 +30,8 @@ namespace Nanpure.Standard.Module
         }
 
         private HashSet<int> _memo = new HashSet<int>();
-        public bool HasMemo => _memo.Count > 0;
         public IReadOnlyCollection<int> Memo => _memo;
+        public bool HasMemo => _memo.Count > 0;
 
         public event Action<Cell> OnValueChanged;
         public event Action OnMemoChanged;

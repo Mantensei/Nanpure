@@ -1,7 +1,17 @@
-﻿using Nanpure.Standard;
-using UnityEngine;
+﻿using _NumberPlace.UI;
 using MantenseiLib;
+using Nanpure.Modules;
+using Nanpure.Standard;
+using Nanpure.Standard.Analyze;
+using Nanpure.Standard.Core;
+using Nanpure.Standard.Module;
+using NUnit.Framework;
+using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
+using UnityEngine.UI;
+
+#if UNITY_EDITOR
 
 namespace Nanpure.Obsolete
 {
@@ -18,18 +28,82 @@ namespace Nanpure.Obsolete
             //    .Initialize(9);
         }
 
-        //void Start()
-        //{
-        //    var g = new StandardPuzzleGenerator(3);
-        //    var p = g.Generate(0, Standard.Core.Difficulty.Expert);
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.M))
+            {
+                var board = FindAnyObjectByType<BoardManager>().BoardReference;
+                AllMemoMagic.MemoAll(board);
+            }
 
-        //    var group = p.Cells
-        //        .GroupBy(x => x.Row)
-        //        .ToArray();
 
-        //    foreach (var row in group)
-        //        Debug.Log(row.JoinToString(x => x.Value));
-        //}
+            if (Input.GetKeyDown(KeyCode.H))
+            {
+                var board = FindAnyObjectByType<BoardManager>().BoardReference;
+                var list = new List<AnalyzedMove>();
+
+                var operation = SolverResultAnalyzer.AnalyzeAsync
+                    (
+                        this,
+                        board,
+                        new[]
+                        {
+                                typeof(NakedSingleLogic),
+                                typeof(HiddenSingleLogic),
+                        }
+                    );
+
+                operation.Completed += (o) =>
+                {
+                    foreach (var r in o.Result)
+                    {
+                        if (r.TryGetNum(out var num))
+                            r.Cell.State.SetNum(num);
+                    }
+                };
+            }
+
+
+            if (Input.GetKeyDown(KeyCode.J))
+            {                
+                var board = FindAnyObjectByType<BoardManager>().BoardReference;
+                var list = new List<AnalyzedMove>();
+
+                var operation = SolverResultAnalyzer.AnalyzeAsync
+                    (
+                        this,
+                        board,
+                        new[]
+                        {
+                                typeof(NakedSingleLogic),
+                                typeof(HiddenSingleLogic),
+                                typeof(NakedPairLogic),
+                                typeof(HiddenPairLogic),      
+                                typeof(NakedTripleLogic),     
+                                typeof(PointingPairLogic),
+                                typeof(BoxLineReductionLogic),
+
+                                typeof(XWingLogic),           // 追加
+                                typeof(XYWingLogic)           // 追加
+                        }
+                    );
+
+                operation.Completed += (o) =>
+                {
+                    var result = o.Result.Where(x => x.CanPlace).FirstOrDefault();
+                    if (result == null) return;
+
+                    foreach(var relation in result.RelatedCells)
+                    {
+                        var img = relation.GetComponentInChildren<Image>();
+                        img.color = Color.green;
+                    }
+                    Debug.Log(result.Techniques.JoinToString());
+                };
+            }
+
+
+        }
     }
-
 }
+#endif
